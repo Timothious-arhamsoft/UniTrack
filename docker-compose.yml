@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: unitrack_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-unitrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unitrack_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-unitrack_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-unitrack} -d $${POSTGRES_DB:-unitrack_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: unitrack_api
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-unitrack}:${POSTGRES_PASSWORD:-unitrack_secret}@db:5432/${POSTGRES_DB:-unitrack_db}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

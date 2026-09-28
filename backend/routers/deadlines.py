@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Optional
-import aiosqlite
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from models import DeadlineCreate, DeadlineUpdate, DeadlineOut
-from database import get_db
+from database import get_db, Database
 
 router = APIRouter(prefix="/api/deadlines", tags=["deadlines"])
 
@@ -29,7 +28,7 @@ async def list_deadlines(
     category: Optional[str] = Query(None),
     archived: bool = Query(False),
     search: Optional[str] = Query(None),
-    db: aiosqlite.Connection = Depends(get_db),
+    db: Database = Depends(get_db),
 ):
     conditions = ["is_archived = ?"]
     params: list = [int(archived)]
@@ -48,26 +47,25 @@ async def list_deadlines(
         params += [like, like, like]
 
     where = " AND ".join(conditions)
-    async with db.execute(
+    rows = await db.fetchall(
         f"SELECT * FROM deadlines WHERE {where} ORDER BY deadline_date ASC, created_at DESC",
         params,
-    ) as cursor:
-        rows = await cursor.fetchall()
+    )
     return [_row_to_deadline(r) for r in rows]
 
 
 @router.post("", response_model=DeadlineOut, status_code=status.HTTP_201_CREATED)
 async def create_deadline(
-    payload: DeadlineCreate, db: aiosqlite.Connection = Depends(get_db)
+    payload: DeadlineCreate, db: Database = Depends(get_db)
 ):
     now = datetime.now(timezone.utc).isoformat()
-    async with db.execute(
+    deadline_id = await db.execute(
         """INSERT INTO deadlines
            (title, category, institution, program, intake, deadline_date,
             date_range_end, timezone_note, status, evidence_text, confidence,
             needs_review, source_id, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (
+        [
             payload.title,
             payload.category,
             payload.institution,
@@ -83,15 +81,14 @@ async def create_deadline(
             payload.source_id,
             now,
             now,
-        ),
-    ) as cursor:
-        deadline_id = cursor.lastrowid
+        ],
+    )
     await db.commit()
     return await _get_deadline_or_404(deadline_id, db)
 
 
 @router.get("/{deadline_id}", response_model=DeadlineOut)
-async def get_deadline(deadline_id: int, db: aiosqlite.Connection = Depends(get_db)):
+async def get_deadline(deadline_id: int, db: Database = Depends(get_db)):
     return await _get_deadline_or_404(deadline_id, db)
 
 
@@ -99,7 +96,7 @@ async def get_deadline(deadline_id: int, db: aiosqlite.Connection = Depends(get_
 async def update_deadline(
     deadline_id: int,
     payload: DeadlineUpdate,
-    db: aiosqlite.Connection = Depends(get_db),
+    db: Database = Depends(get_db),
 ):
     await _get_deadline_or_404(deadline_id, db)
     updates = payload.model_dump(exclude_none=True)
@@ -120,14 +117,14 @@ async def update_deadline(
 
 @router.post("/{deadline_id}/confirm", response_model=DeadlineOut)
 async def confirm_deadline(
-    deadline_id: int, db: aiosqlite.Connection = Depends(get_db)
+    deadline_id: int, db: Database = Depends(get_db)
 ):
     dl = await _get_deadline_or_404(deadline_id, db)
     now = datetime.now(timezone.utc).isoformat()
     await db.execute(
         """UPDATE deadlines SET status='confirmed', confidence='high',
            needs_review=0, updated_at=? WHERE id=?""",
-        (now, deadline_id),
+        [now, deadline_id],
     )
     await db.commit()
     return await _get_deadline_or_404(deadline_id, db)
@@ -135,13 +132,13 @@ async def confirm_deadline(
 
 @router.post("/{deadline_id}/dismiss", response_model=DeadlineOut)
 async def dismiss_deadline(
-    deadline_id: int, db: aiosqlite.Connection = Depends(get_db)
+    deadline_id: int, db: Database = Depends(get_db)
 ):
     await _get_deadline_or_404(deadline_id, db)
     now = datetime.now(timezone.utc).isoformat()
     await db.execute(
         "UPDATE deadlines SET is_archived=1, updated_at=? WHERE id=?",
-        (now, deadline_id),
+        [now, deadline_id],
     )
     await db.commit()
     return await _get_deadline_or_404(deadline_id, db)
@@ -149,18 +146,17 @@ async def dismiss_deadline(
 
 @router.delete("/{deadline_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_deadline(
-    deadline_id: int, db: aiosqlite.Connection = Depends(get_db)
+    deadline_id: int, db: Database = Depends(get_db)
 ):
     await _get_deadline_or_404(deadline_id, db)
-    await db.execute("DELETE FROM deadlines WHERE id = ?", (deadline_id,))
+    await db.execute("DELETE FROM deadlines WHERE id = ?", [deadline_id])
     await db.commit()
 
 
-async def _get_deadline_or_404(deadline_id: int, db: aiosqlite.Connection) -> dict:
-    async with db.execute(
-        "SELECT * FROM deadlines WHERE id = ?", (deadline_id,)
-    ) as cursor:
-        row = await cursor.fetchone()
+async def _get_deadline_or_404(deadline_id: int, db: Database) -> dict:
+    row = await db.fetchone(
+        "SELECT * FROM deadlines WHERE id = ?", [deadline_id]
+    )
     if not row:
         raise HTTPException(status_code=404, detail=f"Deadline {deadline_id} not found.")
     return _row_to_deadline(row)

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-import aiosqlite
 
 from fastapi import APIRouter, Depends
 from models import SettingsUpdate, SettingsOut
-from database import get_db
+from database import get_db, Database
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -21,15 +20,14 @@ def _row_to_settings(row) -> dict:
 
 
 @router.get("", response_model=SettingsOut)
-async def get_settings(db: aiosqlite.Connection = Depends(get_db)):
-    async with db.execute("SELECT * FROM settings WHERE id = 1") as cursor:
-        row = await cursor.fetchone()
+async def get_settings(db: Database = Depends(get_db)):
+    row = await db.fetchone("SELECT * FROM settings WHERE id = 1")
     return _row_to_settings(row)
 
 
 @router.put("", response_model=SettingsOut)
 async def update_settings(
-    payload: SettingsUpdate, db: aiosqlite.Connection = Depends(get_db)
+    payload: SettingsUpdate, db: Database = Depends(get_db)
 ):
     updates = payload.model_dump(exclude_none=True)
     if "default_offsets_days" in updates:
@@ -41,6 +39,5 @@ async def update_settings(
     await db.execute(f"UPDATE settings SET {set_clause} WHERE id = ?", values)
     await db.commit()
 
-    async with db.execute("SELECT * FROM settings WHERE id = 1") as cursor:
-        row = await cursor.fetchone()
+    row = await db.fetchone("SELECT * FROM settings WHERE id = 1")
     return _row_to_settings(row)

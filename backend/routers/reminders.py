@@ -3,11 +3,10 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-import aiosqlite
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from models import ReminderCreate, ReminderUpdate, ReminderOut
-from database import get_db
+from database import get_db, Database
 
 router = APIRouter(prefix="/api/reminders", tags=["reminders"])
 
@@ -32,7 +31,7 @@ def _dedup_key(deadline_id: int, offset_days: int, channel: str) -> str:
 async def list_reminders(
     due: bool = Query(False),
     deadline_id: Optional[int] = Query(None),
-    db: aiosqlite.Connection = Depends(get_db),
+    db: Database = Depends(get_db),
 ):
     conditions = []
     params: list = []
@@ -46,23 +45,21 @@ async def list_reminders(
         params.append(deadline_id)
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
-    async with db.execute(
+    rows = await db.fetchall(
         f"SELECT * FROM reminders {where} ORDER BY scheduled_at ASC",
         params,
-    ) as cursor:
-        rows = await cursor.fetchall()
+    )
     return [_row_to_reminder(r) for r in rows]
 
 
 @router.post("", response_model=ReminderOut, status_code=status.HTTP_201_CREATED)
 async def create_reminder(
-    payload: ReminderCreate, db: aiosqlite.Connection = Depends(get_db)
+    payload: ReminderCreate, db: Database = Depends(get_db)
 ):
     # Fetch deadline to compute scheduled_at
-    async with db.execute(
-        "SELECT deadline_date FROM deadlines WHERE id = ?", (payload.deadline_id,)
-    ) as cursor:
-        dl_row = await cursor.fetchone()
+    dl_row = await db.fetchone(
+        "SELECT deadline_date FROM deadlines WHERE id = ?", [payload.deadline_id]
+    )
 
     if not dl_row:
         raise HTTPException(status_code=404, detail="Deadline not found.")
@@ -79,23 +76,22 @@ async def create_reminder(
     now = datetime.now(timezone.utc).isoformat()
 
     try:
-        async with db.execute(
+        reminder_id = await db.execute(
             """INSERT INTO reminders
                (deadline_id, offset_days, scheduled_at, channel, dedup_key, created_at)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            (
+            [
                 payload.deadline_id,
                 payload.offset_days,
                 scheduled_at,
                 payload.channel,
                 dedup_key,
                 now,
-            ),
-        ) as cursor:
-            reminder_id = cursor.lastrowid
+            ],
+        )
         await db.commit()
     except Exception as exc:
-        if "UNIQUE" in str(exc):
+        if "UNIQUE" in str(exc).upper():
             raise HTTPException(
                 status_code=409,
                 detail=f"A reminder with offset {payload.offset_days}d already exists for this deadline.",
@@ -109,18 +105,17 @@ async def create_reminder(
 async def update_reminder(
     reminder_id: int,
     payload: ReminderUpdate,
-    db: aiosqlite.Connection = Depends(get_db),
+    db: Database = Depends(get_db),
 ):
     reminder = await _get_reminder_or_404(reminder_id, db)
     updates = payload.model_dump(exclude_none=True)
 
     # If offset_days changes, recompute scheduled_at
     if "offset_days" in updates:
-        async with db.execute(
+        dl_row = await db.fetchone(
             "SELECT deadline_date FROM deadlines WHERE id = ?",
-            (reminder["deadline_id"],),
-        ) as cursor:
-            dl_row = await cursor.fetchone()
+            [reminder["deadline_id"]],
+        )
         if dl_row and dl_row["deadline_date"]:
             updates["scheduled_at"] = _compute_scheduled_at(
                 dl_row["deadline_date"], updates["offset_days"]
@@ -137,12 +132,12 @@ async def update_reminder(
 
 
 @router.post("/{reminder_id}/mark-sent", response_model=ReminderOut)
-async def mark_sent(reminder_id: int, db: aiosqlite.Connection = Depends(get_db)):
+async def mark_sent(reminder_id: int, db: Database = Depends(get_db)):
     await _get_reminder_or_404(reminder_id, db)
     now = datetime.now(timezone.utc).isoformat()
     await db.execute(
         "UPDATE reminders SET delivery_status='sent', sent_at=? WHERE id=?",
-        (now, reminder_id),
+        [now, reminder_id],
     )
     await db.commit()
     return await _get_reminder_or_404(reminder_id, db)
@@ -150,18 +145,17 @@ async def mark_sent(reminder_id: int, db: aiosqlite.Connection = Depends(get_db)
 
 @router.delete("/{reminder_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_reminder(
-    reminder_id: int, db: aiosqlite.Connection = Depends(get_db)
+    reminder_id: int, db: Database = Depends(get_db)
 ):
     await _get_reminder_or_404(reminder_id, db)
-    await db.execute("DELETE FROM reminders WHERE id = ?", (reminder_id,))
+    await db.execute("DELETE FROM reminders WHERE id = ?", [reminder_id])
     await db.commit()
 
 
-async def _get_reminder_or_404(reminder_id: int, db: aiosqlite.Connection) -> dict:
-    async with db.execute(
-        "SELECT * FROM reminders WHERE id = ?", (reminder_id,)
-    ) as cursor:
-        row = await cursor.fetchone()
+async def _get_reminder_or_404(reminder_id: int, db: Database) -> dict:
+    row = await db.fetchone(
+        "SELECT * FROM reminders WHERE id = ?", [reminder_id]
+    )
     if not row:
         raise HTTPException(status_code=404, detail=f"Reminder {reminder_id} not found.")
     return _row_to_reminder(row)
