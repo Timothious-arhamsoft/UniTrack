@@ -94,7 +94,8 @@ export const Sources = () => {
 
       <SourcesTable
         sources={sources}
-        onEdit={handleEditAction}
+        onEdit={(source) => setEditing(source)}
+        onUpdated={handleUpdated}
         onDeleted={handleDeleted}
         onFetched={handleFetched}
       />

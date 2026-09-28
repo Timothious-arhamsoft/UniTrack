@@ -225,7 +225,19 @@ a {
 }
 
 .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
-.btn-icon { padding: 7px; border-radius: var(--radius-sm); }
+.btn-icon { 
+  padding: 0 !important;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  line-height: 1;
+  text-align: center;
+}
 
 /* ── Forms ───────────────────────────────────────────────────── */
 .form-group {
