@@ -49,7 +49,7 @@ export const Overview = ({ onNavigate }: { onNavigate: (page: string) => void })
   }
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '1200px' }}>
+    <div className="animate-fade-in">
       {/* Page header */}
       <div className="page-header" style={{ marginBottom: '28px' }}>
         <div>
