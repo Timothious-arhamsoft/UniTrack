@@ -251,6 +251,17 @@ async def update_source(
 @router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_source(source_id: int, db: Database = Depends(get_db)):
     await _get_source_or_404(source_id, db)
+    # 1. Delete reminders linked to deadlines of this source
+    await db.execute(
+        """DELETE FROM reminders WHERE deadline_id IN
+           (SELECT id FROM deadlines WHERE source_id = ?)""",
+        [source_id],
+    )
+    # 2. Delete all deadlines associated with this source
+    await db.execute("DELETE FROM deadlines WHERE source_id = ?", [source_id])
+    # 3. Delete page history for this source
+    await db.execute("DELETE FROM page_history WHERE source_id = ?", [source_id])
+    # 4. Delete the source card itself
     await db.execute("DELETE FROM sources WHERE id = ?", [source_id])
     await db.commit()
 
