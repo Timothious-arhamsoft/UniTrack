@@ -182,3 +182,46 @@ class FetchResult(BaseModel):
     source: Optional[SourceOut] = None
     deadlines_created: int = 0
 
+
+# ─── Chat Models ──────────────────────────────────────────────────────────────
+
+class ChatSessionCreate(BaseModel):
+    title: Optional[str] = "New Chat"
+
+
+class ChatSessionUpdate(BaseModel):
+    title: Optional[str] = None
+
+
+class ChatMessageOut(BaseModel):
+    id: int
+    session_id: int
+    role: str
+    content: str
+    created_at: str
+
+    class Config:
+        from_attributes = True
+
+
+class ChatSessionOut(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    title: str
+    created_at: str
+    updated_at: str
+    last_message_excerpt: Optional[str] = None
+    message_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class ChatSessionDetailOut(ChatSessionOut):
+    messages: List[ChatMessageOut] = []
+
+
+class ChatSendMessageRequest(BaseModel):
+    content: str
+
+

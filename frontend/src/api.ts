@@ -33,6 +33,25 @@ async function request(path: string, options: RequestOptions = {}) {
   return res.json()
 }
 
+export interface ChatMessage {
+  id: number
+  session_id: number
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  created_at: string
+}
+
+export interface ChatSession {
+  id: number
+  user_id?: number
+  title: string
+  created_at: string
+  updated_at: string
+  last_message_excerpt?: string
+  message_count: number
+  messages?: ChatMessage[]
+}
+
 // ── Sources ───────────────────────────────────────────────────────
 export const api = {
   sources: {
@@ -81,6 +100,16 @@ export const api = {
   settings: {
     get:    ()               => request('/api/settings'),
     update: (data: unknown)  => request('/api/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  },
+
+  // ── Chat ──────────────────────────────────────────────────────
+  chat: {
+    listSessions:  ()                           => request('/api/chat/sessions'),
+    createSession: (title?: string)            => request('/api/chat/sessions', { method: 'POST', body: JSON.stringify({ title: title || 'New Chat' }) }),
+    getSession:    (id: number)                 => request(`/api/chat/sessions/${id}`),
+    updateSession: (id: number, title: string)  => request(`/api/chat/sessions/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
+    deleteSession: (id: number)                 => request(`/api/chat/sessions/${id}`, { method: 'DELETE' }),
+    sendMessage:   (sessionId: number, text: string) => request(`/api/chat/sessions/${sessionId}/messages`, { method: 'POST', body: JSON.stringify({ content: text }) }),
   },
 
   // ── Health ────────────────────────────────────────────────────

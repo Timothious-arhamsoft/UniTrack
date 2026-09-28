@@ -2,9 +2,9 @@ import { useState } from 'react'
 import './index.css'
 import { Sidebar } from './components'
 import { useNotifications } from './hooks'
-import { Overview, Sources, Deadlines, Calendar, Reminders, Settings } from './pages'
+import { Overview, Chat, Sources, Deadlines, Calendar, Reminders, Settings } from './pages'
 
-type Page = 'overview' | 'sources' | 'deadlines' | 'calendar' | 'reminders' | 'settings'
+type Page = 'overview' | 'chat' | 'sources' | 'deadlines' | 'calendar' | 'reminders' | 'settings'
 
 const App = () => {
   const [page, setPage] = useState<Page>('overview')
@@ -17,6 +17,7 @@ const App = () => {
   const renderPage = () => {
     switch (page) {
       case 'overview':  return <Overview onNavigate={(p: string) => setPage(p as Page)} />
+      case 'chat':      return <Chat />
       case 'sources':   return <Sources />
       case 'deadlines': return <Deadlines />
       case 'calendar':  return <Calendar />

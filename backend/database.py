@@ -166,11 +166,29 @@ async def init_db():
 
                 INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
+                CREATE TABLE IF NOT EXISTS chat_sessions (
+                    id                  SERIAL PRIMARY KEY,
+                    user_id             INTEGER,
+                    title               TEXT NOT NULL DEFAULT 'New Chat',
+                    created_at          TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at          TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    id                  SERIAL PRIMARY KEY,
+                    session_id          INTEGER NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+                    role                TEXT NOT NULL,
+                    content             TEXT NOT NULL,
+                    created_at          TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_deadlines_status ON deadlines(status);
                 CREATE INDEX IF NOT EXISTS idx_deadlines_deadline_date ON deadlines(deadline_date);
                 CREATE INDEX IF NOT EXISTS idx_reminders_scheduled_at ON reminders(scheduled_at);
                 CREATE INDEX IF NOT EXISTS idx_reminders_delivery_status ON reminders(delivery_status);
                 CREATE INDEX IF NOT EXISTS idx_page_history_source_id ON page_history(source_id);
+                CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated_at ON chat_sessions(updated_at);
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id);
             """)
     else:
         os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
@@ -249,12 +267,31 @@ async def init_db():
 
                 INSERT OR IGNORE INTO settings (id) VALUES (1);
 
+                CREATE TABLE IF NOT EXISTS chat_sessions (
+                    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id             INTEGER,
+                    title               TEXT NOT NULL DEFAULT 'New Chat',
+                    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id          INTEGER NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+                    role                TEXT NOT NULL,
+                    content             TEXT NOT NULL,
+                    created_at          TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_deadlines_status ON deadlines(status);
                 CREATE INDEX IF NOT EXISTS idx_deadlines_deadline_date ON deadlines(deadline_date);
                 CREATE INDEX IF NOT EXISTS idx_reminders_scheduled_at ON reminders(scheduled_at);
                 CREATE INDEX IF NOT EXISTS idx_reminders_delivery_status ON reminders(delivery_status);
                 CREATE INDEX IF NOT EXISTS idx_page_history_source_id ON page_history(source_id);
+                CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated_at ON chat_sessions(updated_at);
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id);
             """)
+            await db.commit()
             await db.commit()
 
 

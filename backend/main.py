@@ -7,8 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db, close_db
-from routers import sources, deadlines, reminders, settings
-
+from routers import sources, deadlines, reminders, settings, chat
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,6 +39,7 @@ app.include_router(sources.router)
 app.include_router(deadlines.router)
 app.include_router(reminders.router)
 app.include_router(settings.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health")

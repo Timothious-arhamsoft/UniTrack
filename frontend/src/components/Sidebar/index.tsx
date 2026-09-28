@@ -1,5 +1,6 @@
 const NAV_ITEMS = [
   { id: 'overview',  label: 'Overview',   icon: '⊞' },
+  { id: 'chat',      label: 'Unibot AI',  icon: '🤖' },
   { id: 'sources',   label: 'Sources',    icon: '🔗' },
   { id: 'deadlines', label: 'Deadlines',  icon: '📋' },
   { id: 'calendar',  label: 'Calendar',   icon: '📅' },
