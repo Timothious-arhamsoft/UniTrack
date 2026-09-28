@@ -8,7 +8,7 @@ const formatDate = (iso) => {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-export const SourcesTable = ({ sources, onEdit, onDeleted, onFetched }) => {
+export const SourcesTable = ({ sources, onEdit, onUpdated, onDeleted, onFetched }) => {
   const [fetchingId, setFetchingId] = useState(null)
   const [errorMap, setErrorMap] = useState({})
 
@@ -28,7 +28,7 @@ export const SourcesTable = ({ sources, onEdit, onDeleted, onFetched }) => {
   const handleToggleActive = async (source) => {
     try {
       const updated = await api.sources.update(source.id, { active: !source.active })
-      onEdit(updated)
+      if (onUpdated) onUpdated(updated)
     } catch (_) {}
   }
 
