@@ -31,10 +31,6 @@ export const AddSourceModal = ({ isOpen, onClose, onCreated }) => {
         notes: form.notes || null,
         check_cadence_hours: Number(form.check_cadence_hours),
       })
-      // Auto-fetch if URL was provided
-      if (source.url) {
-        try { await api.sources.fetch(source.id) } catch (_) { /* fetch errors shown separately */ }
-      }
       onCreated(source)
       onClose()
       setForm({ name: '', url: '', source_type: 'university', program_context: '', intake_year: '', notes: '', check_cadence_hours: 24 })

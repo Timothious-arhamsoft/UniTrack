@@ -25,9 +25,11 @@ from urllib.parse import urlparse
 import httpx
 from bs4 import BeautifulSoup
 
+import asyncio
+
 # Per-domain rate limiting: domain -> last fetch timestamp
 _domain_last_fetch: dict[str, float] = {}
-DOMAIN_RATE_LIMIT_SECONDS = 10
+DOMAIN_RATE_LIMIT_SECONDS = 1
 
 PRIVATE_RANGES = [
     ipaddress.ip_network("10.0.0.0/8"),
@@ -97,11 +99,11 @@ def _validate_url(url: str) -> tuple[str, str]:
     return scheme, host
 
 
-def _apply_rate_limit(domain: str) -> None:
+async def _apply_rate_limit(domain: str) -> None:
     last = _domain_last_fetch.get(domain, 0.0)
     elapsed = time.monotonic() - last
     if elapsed < DOMAIN_RATE_LIMIT_SECONDS:
-        time.sleep(DOMAIN_RATE_LIMIT_SECONDS - elapsed)
+        await asyncio.sleep(DOMAIN_RATE_LIMIT_SECONDS - elapsed)
 
 
 def _extract_text(html: str) -> str:
@@ -145,7 +147,7 @@ async def fetch_url(url: str) -> dict:
         result["error"] = f"Blocked: '{host}' resolves to a private/reserved IP address."
         return result
 
-    _apply_rate_limit(host)
+    await _apply_rate_limit(host)
 
     try:
         transport = httpx.AsyncHTTPTransport(retries=0)
@@ -156,8 +158,9 @@ async def fetch_url(url: str) -> dict:
             transport=transport,
             headers={
                 "User-Agent": (
-                    "Mozilla/5.0 (compatible; UniTrack/1.0; "
-                    "+https://github.com/university-reminder)"
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/122.0.0.0 Safari/537.36"
                 )
             },
         ) as client:

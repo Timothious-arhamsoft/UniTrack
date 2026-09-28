@@ -27,6 +27,7 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-unitrack}:${POSTGRES_PASSWORD:-unitrack_secret}@db:5432/${POSTGRES_DB:-unitrack_db}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8000:8000"
     depends_on:

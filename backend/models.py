@@ -179,3 +179,6 @@ class FetchResult(BaseModel):
     content_changed: bool = False
     error: Optional[str] = None
     fetched_at: str
+    source: Optional[SourceOut] = None
+    deadlines_created: int = 0
+
