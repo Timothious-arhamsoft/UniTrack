@@ -33,6 +33,10 @@ const App = () => {
     setMobileOpen(false)
   }
 
+  const handleHomeNavigate = () => {
+    handleNavigate('overview')
+  }
+
   return (
     <div className="app-layout">
       {/* Mobile Top Header */}
@@ -44,10 +48,25 @@ const App = () => {
         >
           ☰
         </button>
-        <span style={{ fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#b598f3' }}>Uni</span>
-          <span style={{ color: '#FCB100' }}>Track</span>
-        </span>
+          <button
+            type="button"
+            onClick={handleHomeNavigate}
+            aria-label="Go to home"
+            style={{
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              whiteSpace: 'nowrap',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <span style={{ color: '#b598f3' }}>Uni</span>
+            <span style={{ color: '#FCB100' }}>Track</span>
+          </button>
           <UniTrackLogo
             size={42}
             showName={false}

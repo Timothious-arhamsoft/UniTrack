@@ -12,6 +12,9 @@ const NAV_ITEMS = [
 
 
 export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
+  const handleLogoClick = () => {
+    onNavigate('overview')
+  }
   return (
     <nav
       className="sidebar"
@@ -31,16 +34,35 @@ export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
       }}
     >
       {/* Logo */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        padding: collapsed ? '8px 0' : '8px 20px',
-        marginBottom: '24px',
-        justifyContent: collapsed ? 'center' : 'flex-start',
-      }}>
-        <UniTrackLogo size={80} showName={!collapsed} style={{ flexShrink: 0,  width: collapsed ? '40px' : '180px',  height: 'auto', maxWidth: '100%',}} />
-      </div>
+      <button
+        type="button"
+        id="sidebar-logo"
+        onClick={handleLogoClick}
+        title="Home"
+        aria-label="Go to home"
+        style={{display: 'flex',  alignItems: 'center', gap: '10px', padding: collapsed ? '8px 0' : '8px 20px',
+          marginBottom: '24px',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          width: '100%',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          color: 'inherit',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '0.85'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = '1'
+        }}
+      >
+        <UniTrackLogo
+          size={80}
+          showName={!collapsed}
+          style={{ flexShrink: 0, width: collapsed ? '40px' : '180px', height: 'auto', maxWidth: '100%',
+          }}
+        />
+      </button>
 
       {/* Nav items */}
       <ul style={{ listStyle: 'none', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 8px' }}>
