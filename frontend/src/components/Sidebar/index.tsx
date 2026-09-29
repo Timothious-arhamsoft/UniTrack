@@ -49,12 +49,6 @@ export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
           cursor: 'pointer',
           color: 'inherit',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.opacity = '0.85'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = '1'
-        }}
       >
         <UniTrackLogo
           size={80}
