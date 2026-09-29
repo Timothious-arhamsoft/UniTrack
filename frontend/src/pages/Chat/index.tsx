@@ -11,6 +11,8 @@ export const Chat = () => {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const initialSessionCreated = useRef(false);
+  const creatingSession = useRef(false);
 
   // 1. Fetch Chat Sessions on load
   const loadSessions = async (autoSelectId?: number) => {
@@ -21,12 +23,21 @@ export const Chat = () => {
       setSessions(data)
 
       if (data.length > 0) {
-        const targetId = autoSelectId || (activeSessionId && data.some(s => s.id === activeSessionId) ? activeSessionId : data[0].id)
-        setActiveSessionId(targetId)
-        loadSessionDetail(targetId)
+        const targetId =
+          autoSelectId ||
+          (activeSessionId &&
+          data.some(s => s.id === activeSessionId)
+            ? activeSessionId
+            : data[0].id);
+
+        setActiveSessionId(targetId);
+        loadSessionDetail(targetId);
       } else {
-        // Automatically create a default session if history is empty
-        handleNewChat()
+        // Create only one initial session
+        if (!initialSessionCreated.current) {
+          initialSessionCreated.current = true;
+          await handleNewChat();
+        }
       }
     } catch (err: any) {
       console.error('Failed to load chat sessions:', err)
@@ -59,18 +70,35 @@ export const Chat = () => {
 
   // 3. Create New Chat Session
   const handleNewChat = async () => {
+    if (creatingSession.current) return;
+
+    creatingSession.current = true;
+
     try {
-      setSending(true)
-      const newSess: ChatSession = await api.chat.createSession('New Chat')
-      setSessions(prev => [newSess, ...prev])
-      setActiveSessionId(newSess.id)
-      setActiveSession(newSess)
+      setSending(true);
+
+      const newSess: ChatSession =
+        await api.chat.createSession("New Chat");
+
+      setSessions(prev => {
+        // Avoid adding the same session twice in the UI
+        if (prev.some(s => s.id === newSess.id)) {
+          return prev;
+        }
+
+        return [newSess, ...prev];
+      });
+
+      setActiveSessionId(newSess.id);
+      setActiveSession(newSess);
     } catch (err: any) {
-      setError('Failed to create new chat session.')
+      setError("Failed to create new chat session.");
+      initialSessionCreated.current = false;
     } finally {
-      setSending(false)
+      creatingSession.current = false;
+      setSending(false);
     }
-  }
+  };
 
   // 4. Select Session
   const handleSelectSession = (id: number) => {
