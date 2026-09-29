@@ -3,6 +3,7 @@ import './index.css'
 import { Sidebar } from './components'
 import { useNotifications } from './hooks'
 import { Overview, Chat, Sources, Deadlines, Calendar, Reminders, Settings } from './pages'
+import {UniTrackLogo} from './assets'
 
 type Page = 'overview' | 'chat' | 'sources' | 'deadlines' | 'calendar' | 'reminders' | 'settings'
 
@@ -43,9 +44,15 @@ const App = () => {
         >
           ☰
         </button>
-        <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-heading)' }}>
-          UniTrack
+        <span style={{ fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#b598f3' }}>Uni</span>
+          <span style={{ color: '#FCB100' }}>Track</span>
         </span>
+          <UniTrackLogo
+            size={42}
+            showName={false}
+            className="mobile-lock-logo"
+          />
       </div>
 
       {/* Sidebar Navigation */}

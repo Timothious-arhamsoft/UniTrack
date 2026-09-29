@@ -660,6 +660,10 @@ table tbody tr:hover { background: rgba(255,255,255,0.03); }
     border-bottom: 1px solid var(--color-border);
     z-index: 100;
   }
+  .mobile-lock-logo {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
 
   .sidebar-wrapper {
     position: fixed;

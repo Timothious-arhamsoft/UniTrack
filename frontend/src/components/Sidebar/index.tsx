@@ -1,3 +1,5 @@
+import {UniTrackLogo} from '../../assets'
+
 const NAV_ITEMS = [
   { id: 'overview',  label: 'Overview',   icon: '⊞' },
   { id: 'chat',      label: 'Unibot AI',  icon: '🤖' },
@@ -32,23 +34,11 @@ export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
-        padding: collapsed ? '8px 18px' : '8px 20px',
+        padding: collapsed ? '8px 0' : '8px 20px',
         marginBottom: '24px',
         justifyContent: collapsed ? 'center' : 'flex-start',
       }}>
-        <div style={{
-          width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '16px', boxShadow: '0 2px 8px rgba(99,102,241,0.4)',
-        }}>
-          🎓
-        </div>
-        {!collapsed && (
-          <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-heading)', whiteSpace: 'nowrap' }}>
-            UniTrack
-          </span>
-        )}
+        <UniTrackLogo size={80} showName={!collapsed} style={{ flexShrink: 0,  width: collapsed ? '40px' : '180px',  height: 'auto', maxWidth: '100%',}} />
       </div>
 
       {/* Nav items */}
