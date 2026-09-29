@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { api, ChatSession, ChatMessage } from '../../api'
+import { UniTrackBotIcon} from '../../assets'
 
 export const Chat = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([])
@@ -343,8 +344,8 @@ export const Chat = () => {
         {/* Header */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(30, 41, 59, 0.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 2px 10px rgba(99,102,241,0.4)' }}>
-              🤖
+            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center',  flexShrink: 0,}}>
+              <UniTrackBotIcon size={42} aria-label="UniTrack Bot"/>
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -431,7 +432,15 @@ export const Chat = () => {
                   }}
                 >
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginBottom: '4px', paddingLeft: isUser ? 0 : '4px', paddingRight: isUser ? '4px' : 0 }}>
-                    {isUser ? 'You' : '🤖 Unibot'}
+                    {isUser ? (
+                        'You'
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                          <UniTrackBotIcon size={18} />
+                          Unibot
+                        </span>
+                      )}
+
                   </div>
                   <div
                     style={{
@@ -456,7 +465,10 @@ export const Chat = () => {
           {sending && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '85%' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginBottom: '4px', paddingLeft: '4px' }}>
-                🤖 Unibot
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <UniTrackBotIcon size={18} />
+                  Unibot
+                </span>
               </div>
               <div style={{ padding: '12px 16px', borderRadius: '16px 16px 16px 2px', background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--color-text-muted)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="typing-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)', display: 'inline-block' }}></span>

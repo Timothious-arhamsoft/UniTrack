@@ -1,14 +1,15 @@
-import {UniTrackLogo} from '../../assets'
+import {UniTrackLogo, UniTrackBotIcon} from '../../assets'
 
 const NAV_ITEMS = [
-  { id: 'overview',  label: 'Overview',   icon: '⊞' },
-  { id: 'chat',      label: 'Unibot AI',  icon: '🤖' },
-  { id: 'sources',   label: 'Sources',    icon: '🔗' },
-  { id: 'deadlines', label: 'Deadlines',  icon: '📋' },
-  { id: 'calendar',  label: 'Calendar',   icon: '📅' },
-  { id: 'reminders', label: 'Reminders',  icon: '🔔' },
-  { id: 'settings',  label: 'Settings',   icon: '⚙' },
+  { id: 'overview', label: 'Overview', icon: '⊞' },
+  { id: 'chat', label: 'Unibot AI', icon: UniTrackBotIcon },
+  { id: 'sources', label: 'Sources', icon: '🔗' },
+  { id: 'deadlines', label: 'Deadlines', icon: '📋' },
+  { id: 'calendar', label: 'Calendar', icon: '📅' },
+  { id: 'reminders', label: 'Reminders', icon: '🔔' },
+  { id: 'settings', label: 'Settings', icon: '⚙' },
 ]
+
 
 export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
   return (
@@ -76,7 +77,29 @@ export const Sidebar = ({ activePage, onNavigate, collapsed, onToggle }) => {
                   if (!isActive) e.currentTarget.style.background = 'transparent'
                 }}
               >
-                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{item.icon}</span>
+                <span
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {typeof item.icon === 'string' ? (
+                    item.icon
+                  ) : (
+                    <item.icon
+                      size={24}
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                      }}
+                    />
+                  )}
+                </span>
+
                 {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
               </button>
             </li>
